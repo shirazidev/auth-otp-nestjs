@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { OtpEntity } from "./otp.entity";
 
 @Entity("user")
 export class UserEntity {
@@ -18,4 +19,9 @@ export class UserEntity {
     created_at: Date;
     @UpdateDateColumn()
     updated_at: Date;
+    @Column()
+    otpId: number;
+    @OneToOne(()=> OtpEntity, otp => otp.user)
+    @JoinColumn({name: "otpId"})
+    otp: OtpEntity
 }
