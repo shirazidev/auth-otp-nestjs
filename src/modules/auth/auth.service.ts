@@ -11,13 +11,18 @@ import { UserEntity } from "../user/entities/user.entity";
 import { Repository } from "typeorm";
 import { OtpEntity } from "../user/entities/otp.entity";
 import { randomInt } from "crypto";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import { TokensPayload } from "./types/payload";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-    @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>
+    @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
+    private jwtService: JwtService,
+    private configService: ConfigService
   ) {}
   async sendOtp(otpDto: SendOtpDto) {
     const { mobile } = otpDto;
@@ -55,10 +60,31 @@ export class AuthService {
     if (otp?.expires_in < now)
       throw new UnauthorizedException("your code is expired");
     if (!user.mobile_verified) {
-      await this.userRepository.update({id: user.id}, {mobile_verified: true})
+      await this.userRepository.update(
+        { id: user.id },
+        { mobile_verified: true }
+      );
     }
+    const { accessToken, refreshToken } = await this.makeTokensOfUser({ id: user.id, mobile: mobile });
+
     return {
+      accessToken,
+      refreshToken,
       message: "signed in successfully",
+    };
+  }
+  async makeTokensOfUser(payload: TokensPayload) {
+    const accessToken = await this.jwtService.sign(payload, {
+      secret: this.configService.get("Jwt.accessTokenSecret"),
+      expiresIn: "30d",
+    });
+    const refreshToken = await this.jwtService.sign(payload, {
+      secret: this.configService.get("Jwt.accessTokenSecret"),
+      expiresIn: "1y",
+    });
+    return {
+      accessToken,
+      refreshToken,
     };
   }
 
