@@ -5,6 +5,7 @@ import {
   IsString,
   Length,
 } from "class-validator";
+import { ConfirmedPassword } from "src/common/decorators/password.decorator";
 
 export class SignupDto {
   @IsString()
@@ -35,7 +36,7 @@ export class SignupDto {
   @IsString()
   @Length(8, 20, { message: "Password should be between 8 and 20 characters" })
   password: string;
-  @IsString()
+  @ConfirmedPassword("password")
   confirm_password: string;
 }
 export class LoginDto {
