@@ -26,7 +26,13 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
-
+  
+  @Get('/profile')
+  @HttpCode(HttpStatus.OK)
+  profile(@Req() request: Request) {
+    console.log(request.user); // Log the user object
+    return request.user;
+  }
   @Get()
   findAll() {
     return this.userService.findAll();
@@ -35,12 +41,6 @@ export class UserController {
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.userService.findOne(+id);
-  }
-  @Get('/profile')
-  @HttpCode(HttpStatus.OK)
-  profile(@Req() request: Request) {
-    console.log(request.user); // Log the user object
-    return request.user;
   }
 
   @Patch(":id")
