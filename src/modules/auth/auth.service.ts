@@ -1,6 +1,7 @@
-import { SendOtpDto, CheckOtpDto } from "./dto/otp.dto";
+import { CheckOtpDto, SendOtpDto } from "./dto/otp.dto";
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -12,6 +13,8 @@ import { randomInt } from "crypto";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { TokensPayload } from "./types/payload";
+import { SignupDto } from "./dto/basic.dto";
+import { genSaltSync, hashSync } from "bcrypt";
 
 @Injectable()
 export class AuthService {
@@ -74,12 +77,45 @@ export class AuthService {
       message: "signed in successfully",
     };
   }
+  async signup(signupDto: SignupDto) {
+    let { email, mobile, password, first_name, last_name } =
+      signupDto;
+    await this.checkMobile(mobile);
+    await this.checkEmail(email);
+    password = await this.passwordMatch(password);
+    let user = this.userRepository.create({
+      email,
+      mobile,
+      password,
+      first_name,
+      last_name,
+      mobile_verified: false,
+    });
+    user = await this.userRepository.save(user);
+    return {
+      message: "user created successfully",
+    };
+  }
+  async checkEmail(email: string) {
+    const user = await this.userRepository.findOneBy({ email });
+    if (user) throw new ConflictException("email is already taken");
+    return null;
+  }
+  async checkMobile(mobile: string) {
+    const user = await this.userRepository.findOneBy({ mobile });
+    if (user) throw new ConflictException("mobile phone is already taken");
+  }
+  async passwordMatch(password: string) {
+    const salt = genSaltSync(10);
+    return hashSync(password, salt);
+  }
+
   async makeTokensOfUser(payload: TokensPayload) {
-    const accessToken = await this.jwtService.sign(payload, {
+    const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get("Jwt.accessTokenSecret"),
       expiresIn: "30d",
     });
-    const refreshToken = await this.jwtService.sign(payload, {
+    const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get("Jwt.refreshTokenSecret"),
       expiresIn: "1y",
     });
