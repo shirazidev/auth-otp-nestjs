@@ -65,7 +65,10 @@ export class AuthService {
         { mobile_verified: true }
       );
     }
-    const { accessToken, refreshToken } = await this.makeTokensOfUser({ id: user.id, mobile: mobile });
+    const { accessToken, refreshToken } = await this.makeTokensOfUser({
+      id: user.id,
+      mobile: mobile,
+    });
 
     return {
       accessToken,
@@ -79,7 +82,7 @@ export class AuthService {
       expiresIn: "30d",
     });
     const refreshToken = await this.jwtService.sign(payload, {
-      secret: this.configService.get("Jwt.accessTokenSecret"),
+      secret: this.configService.get("Jwt.refreshTokenSecret"),
       expiresIn: "1y",
     });
     return {
@@ -109,5 +112,20 @@ export class AuthService {
       await this.userRepository.save(user);
     }
     await this.otpRepository.save(otp);
+  }
+  async validateAccessToken(token: string) {
+    try {
+      const payload = this.jwtService.verify<TokensPayload>(token, {
+        secret: this.configService.get<string>("Jwt.accessTokenSecret"),
+      });
+      if (typeof payload === "object" && payload?.id) {
+        const user = await this.userRepository.findOneBy({ id: payload.id });
+        if (!user) throw new UnauthorizedException("Login to your account");
+        return user;
+      }
+      throw new UnauthorizedException("Login to your account");
+    } catch (error) {
+      throw new UnauthorizedException("Login to your account");
+    }
   }
 }
