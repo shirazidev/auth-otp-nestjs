@@ -13,8 +13,8 @@ import { randomInt } from "crypto";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { TokensPayload } from "./types/payload";
-import { SignupDto } from "./dto/basic.dto";
-import { genSaltSync, hashSync } from "bcrypt";
+import { LoginDto, SignupDto } from "./dto/basic.dto";
+import { compareSync, genSaltSync, hashSync } from "bcrypt";
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
     private userRepository: Repository<UserEntity>,
     @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
   async sendOtp(otpDto: SendOtpDto) {
     const { mobile } = otpDto;
@@ -63,7 +63,7 @@ export class AuthService {
     if (!user.mobile_verified) {
       await this.userRepository.update(
         { id: user.id },
-        { mobile_verified: true },
+        { mobile_verified: true }
       );
     }
     const { accessToken, refreshToken } = await this.makeTokensOfUser({
@@ -78,8 +78,7 @@ export class AuthService {
     };
   }
   async signup(signupDto: SignupDto) {
-    let { email, mobile, password, first_name, last_name } =
-      signupDto;
+    let { email, mobile, password, first_name, last_name } = signupDto;
     await this.checkMobile(mobile);
     await this.checkEmail(email);
     password = await this.passwordMatch(password);
@@ -94,6 +93,30 @@ export class AuthService {
     user = await this.userRepository.save(user);
     return {
       message: "user created successfully",
+    };
+  }
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+    const user = await this.userRepository.findOneBy({ email });
+    if (!user)
+      throw new UnauthorizedException(
+        "User account with this credintials not found."
+      );
+    if (!user?.password)
+      throw new UnauthorizedException("you cannot login using password!");
+    if (!compareSync(password, user.password))
+      throw new UnauthorizedException(
+        "User account with this credintials not found."
+      );
+    const { accessToken, refreshToken } = await this.makeTokensOfUser({
+      id: user?.id,
+      email: user?.email,
+      mobile: user?.mobile,
+    });
+    return {
+      accessToken,
+      refreshToken,
+      message: "user logged in successfully!",
     };
   }
   async checkEmail(email: string) {
