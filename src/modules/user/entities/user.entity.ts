@@ -6,20 +6,18 @@ export class UserEntity {
     @PrimaryGeneratedColumn("increment")
     id: number;
     @Column({unique: true})
-    username: string;
-    @Column({unique: true})
     mobile: string;
     @Column({default: false})
     mobile_verified: boolean;
-    @Column()
+    @Column({nullable: true})
     first_name: string;
-    @Column()
+    @Column({nullable: true})
     last_name: string;
     @CreateDateColumn()
     created_at: Date;
     @UpdateDateColumn()
     updated_at: Date;
-    @Column()
+    @Column({nullable: true})
     otpId: number;
     @OneToOne(()=> OtpEntity, otp => otp.user)
     @JoinColumn({name: "otpId"})
