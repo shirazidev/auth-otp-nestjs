@@ -1,4 +1,4 @@
-import { SendOtpDto, CheckOtpDto } from "./dto/auth.dto";
+import { SendOtpDto, CheckOtpDto } from "./dto/otp.dto";
 import {
   BadRequestException,
   Inject,
