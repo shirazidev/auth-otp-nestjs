@@ -1,16 +1,16 @@
-import { Body, Controller, Get, ParseIntPipe, Post } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CheckOtpDto, SendOtpDto } from './dto/otp.dto';
+import { Body, Controller, Post } from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import { CheckOtpDto, SendOtpDto } from "./dto/otp.dto";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-  @Post('/send-otp')
+  @Post("/send-otp")
   async sendOtp(@Body() otpDto: SendOtpDto) {
-    return await this.authService.sendOtp(otpDto)
+    return await this.authService.sendOtp(otpDto);
   }
-  @Post('/check-otp')
+  @Post("/check-otp")
   async checkOtp(@Body() otpDto: CheckOtpDto) {
-    return await this.authService.checkOtp(otpDto)
+    return await this.authService.checkOtp(otpDto);
   }
 }

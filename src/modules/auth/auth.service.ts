@@ -1,9 +1,7 @@
 import { SendOtpDto, CheckOtpDto } from "./dto/otp.dto";
 import {
   BadRequestException,
-  Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -22,7 +20,7 @@ export class AuthService {
     private userRepository: Repository<UserEntity>,
     @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {}
   async sendOtp(otpDto: SendOtpDto) {
     const { mobile } = otpDto;
@@ -62,7 +60,7 @@ export class AuthService {
     if (!user.mobile_verified) {
       await this.userRepository.update(
         { id: user.id },
-        { mobile_verified: true }
+        { mobile_verified: true },
       );
     }
     const { accessToken, refreshToken } = await this.makeTokensOfUser({

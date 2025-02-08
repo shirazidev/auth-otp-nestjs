@@ -1,16 +1,10 @@
-import {
-  IsMobilePhone,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  Length,
-} from "class-validator";
+import { IsMobilePhone, IsNotEmpty, IsString, Length } from "class-validator";
 
 export class SendOtpDto {
   @IsMobilePhone(
     "fa-IR",
     {},
-    { message: "You can only enter Iranian phone number." }
+    { message: "You can only enter Iranian phone number." },
   )
   @IsNotEmpty()
   mobile: string;
@@ -19,7 +13,7 @@ export class CheckOtpDto {
   @IsMobilePhone(
     "fa-IR",
     {},
-    { message: "You can only enter Iranian phone number." }
+    { message: "You can only enter Iranian phone number." },
   )
   @IsNotEmpty()
   mobile: string;
