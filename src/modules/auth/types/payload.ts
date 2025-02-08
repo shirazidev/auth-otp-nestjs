@@ -1,4 +1,5 @@
 export type TokensPayload = {
-    mobile: string;
+    mobile?: string;
+    email?: string,
     id: number;
 }
